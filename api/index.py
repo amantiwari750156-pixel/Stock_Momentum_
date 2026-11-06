@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 import pandas as pd
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +21,24 @@ UNIVERSE_FILE = DATA_DIR / "stock_universe.csv"
 CACHE_DIR = DATA_DIR / "price_cache"
 
 app = FastAPI(title="India Momentum Scanner API", version="1.0.0")
+
+
+@app.get("/", include_in_schema=False)
+def dashboard():
+    """Display the India Momentum Scanner dashboard."""
+    dashboard_file = ROOT / "index.html"
+
+    if not dashboard_file.exists():
+        raise HTTPException(
+            status_code=500,
+            detail="Dashboard file index.html is missing from the deployment."
+        )
+
+    return FileResponse(
+        dashboard_file,
+        media_type="text/html"
+    )
+
 
 class ScanRequest(BaseModel):
     universe: str = "Nifty 50 (static list)"
