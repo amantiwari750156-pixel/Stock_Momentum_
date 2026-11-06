@@ -19,6 +19,7 @@ os.environ["MOMENTUM_CACHE_DIR"] = str(DATA_DIR / "price_cache")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 UNIVERSE_FILE = DATA_DIR / "stock_universe.csv"
 CACHE_DIR = DATA_DIR / "price_cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(title="India Momentum Scanner API", version="1.0.0")
 
@@ -96,7 +97,7 @@ def scan(req: ScanRequest):
         total = len(df)
         batch = df.iloc[req.offset:req.offset + req.limit].copy()
         cfg = req.model_dump(exclude={"universe", "offset", "limit", "refresh"})
-        results, failures = scan_symbols(batch, cfg, refresh=req.refresh)
+        results, failures = scan_symbols(batch, cfg, refresh=req.refresh, cache_dir=CACHE_DIR)
         safe_results = json.loads(results.replace([float("inf"), float("-inf")], float("nan")).to_json(orient="records"))
         safe_failures = json.loads(failures.to_json(orient="records"))
         return {"offset": req.offset, "processed": len(batch), "total": total,

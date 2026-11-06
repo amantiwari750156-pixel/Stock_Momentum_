@@ -1,4 +1,6 @@
 import math
+import tempfile
+from pathlib import Path
 import pandas as pd
 from .data_fetcher import fetch_history
 from .indicators import add_indicators, relative_strength
@@ -6,7 +8,18 @@ from .crossover import crossover_events, dema_crossover_events, price_crossover_
 from .consolidation import consolidation_metrics
 from .filters import apply_optional_filters
 
-def scan_symbols(universe: pd.DataFrame, cfg: dict, progress=None, refresh: bool = False, cache_dir="data/price_cache"):
+def scan_symbols(
+    universe: pd.DataFrame,
+    cfg: dict,
+    progress=None,
+    refresh: bool = False,
+    cache_dir=None
+):
+    if cache_dir is None:
+        cache_dir = Path(tempfile.gettempdir()) / "india_momentum_scanner" / "price_cache"
+
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
     benchmark = None
     try:
         benchmark = add_indicators(fetch_history("^NSEI", period="3y", cache_dir=cache_dir, refresh=refresh))
